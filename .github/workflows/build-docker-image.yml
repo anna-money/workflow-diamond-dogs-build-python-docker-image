@@ -1,0 +1,84 @@
+name: Build Docker image
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      src_path:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      registry:
+        required: true
+        type: string
+      tag_latest:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      gcloud_service_account_key:
+        required: true
+      pypi_user:
+        required: true
+      pypi_password:
+        required: true
+    outputs:
+      image:
+        value: ${{ jobs.build-and-push.outputs.image }}
+
+env:
+  DOCKER_IMAGE: ${{ inputs.registry }}/${{ inputs.name }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: ${{ github.event_name != 'pull_request_target' }}
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Checkout PR
+        if: ${{ github.event_name == 'pull_request_target' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          lfs: true
+      - name: Save version inside image
+        run: |
+          sed -E -i \
+            's/^__version__ = (.+)$/__version__ = "${{ inputs.version }}"/g' \
+            ${{ inputs.src_path }}/__init__.py
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: "275.0.0"
+          service_account_key: ${{ secrets.gcloud_service_account_key }}
+      - name: GCP login
+        run: |
+          gcloud auth configure-docker
+      - name: Pull "latest" image
+        run: |
+          docker pull ${DOCKER_IMAGE}:latest || true
+      - name: Build "ci" image using "latest"
+        run: |
+          docker build \
+            --tag ${DOCKER_IMAGE}:ci \
+            --cache-from ${DOCKER_IMAGE}:latest \
+            --build-arg PYPI_USER=${{ secrets.pypi_user }} \
+            --build-arg PYPI_PASSWORD=${{ secrets.pypi_password }} \
+            --build-arg BUILDKIT_INLINE_CACHE=1 .
+      - name: Push "ci" image as "${{ inputs.version }}"
+        run: |
+          docker tag ${DOCKER_IMAGE}:ci ${DOCKER_IMAGE}:${{ inputs.version }}
+          docker push ${DOCKER_IMAGE}:${{ inputs.version }}
+      - name: Push "${{ inputs.version }}" image as "latest"
+        if: ${{ inputs.tag_latest }}
+        run: |
+          docker tag ${DOCKER_IMAGE}:${{ inputs.version }} ${DOCKER_IMAGE}:latest
+          docker push ${DOCKER_IMAGE}:latest
+    outputs:
+      image: ${DOCKER_IMAGE}:${{ inputs.version }}
