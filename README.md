@@ -11,6 +11,12 @@ This workflow allows you to build Docker image and push it to Google Cloud Regis
 5. `src_path` (string, default:  `''`) - path to the source directory with `__init__.py` file to update `__version__`
    variable in it. Ignored by default.
 
+## Secrets
+
+1. `gcloud_service_account_key` - Key to access to Google Cloud Registry
+2. `pypi_user` - PyPI user
+3. `pypi_password` - PyPI password
+
 ## Outputs
 
 1. `image` (string) - full image name with registry and version. Ex.: `eu.gcr.io/my-registry/my-app:1.2.3`
