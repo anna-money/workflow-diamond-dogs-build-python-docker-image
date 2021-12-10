@@ -74,13 +74,15 @@ jobs:
             --build-arg PYPI_PASSWORD=${{ secrets.pypi_password }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 .
       - name: Push "ci" image as "${{ inputs.version }}"
+        id: push-image
         run: |
           docker tag ${DOCKER_IMAGE}:ci ${DOCKER_IMAGE}:${{ inputs.version }}
           docker push ${DOCKER_IMAGE}:${{ inputs.version }}
+          echo ::set-output name=image::"${DOCKER_IMAGE}:${{ inputs.version }}"
       - name: Push "${{ inputs.version }}" image as "latest"
         if: ${{ inputs.tag_latest }}
         run: |
           docker tag ${DOCKER_IMAGE}:${{ inputs.version }} ${DOCKER_IMAGE}:latest
           docker push ${DOCKER_IMAGE}:latest
     outputs:
-      image: ${DOCKER_IMAGE}:${{ inputs.version }}
+      image: ${{ steps.push-image.outputs.image }}
