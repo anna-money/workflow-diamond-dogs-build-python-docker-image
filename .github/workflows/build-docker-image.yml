@@ -66,6 +66,8 @@ jobs:
         run: |
           docker pull ${DOCKER_IMAGE}:latest || true
       - name: Build "ci" image using "latest"
+        env:
+          DOCKER_BUILDKIT: 1
         run: |
           docker build \
             --tag ${DOCKER_IMAGE}:ci \
