@@ -55,7 +55,7 @@ jobs:
           sed -E -i \
             's/^__version__ = (.+)$/__version__ = "${{ inputs.version }}"/g' \
             ${{ inputs.src_path }}/__init__.py
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@v0
         with:
           version: "275.0.0"
           service_account_key: ${{ secrets.gcloud_service_account_key }}
