@@ -55,10 +55,12 @@ jobs:
           sed -E -i \
             's/^__version__ = (.+)$/__version__ = "${{ inputs.version }}"/g' \
             ${{ inputs.src_path }}/__init__.py
+      - uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.gcloud_service_account_key }}
       - uses: google-github-actions/setup-gcloud@v0
         with:
           version: "275.0.0"
-          service_account_key: ${{ secrets.gcloud_service_account_key }}
       - name: GCP login
         run: |
           gcloud auth configure-docker
