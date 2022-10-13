@@ -82,7 +82,7 @@ jobs:
         run: |
           docker tag ${DOCKER_IMAGE}:ci ${DOCKER_IMAGE}:${{ inputs.version }}
           docker push ${DOCKER_IMAGE}:${{ inputs.version }}
-          echo ::set-output name=image::"${DOCKER_IMAGE}:${{ inputs.version }}"
+          echo "image=${DOCKER_IMAGE}:${{ inputs.version }}" >> $GITHUB_OUTPUT
       - name: Push "${{ inputs.version }}" image as "latest"
         if: ${{ inputs.tag_latest }}
         run: |
