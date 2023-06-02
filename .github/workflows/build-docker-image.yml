@@ -59,6 +59,8 @@ jobs:
         with:
           credentials_json: ${{ secrets.gcloud_service_account_key }}
       - uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: "410.0.0"
       - name: GCP login
         run: |
           gcloud auth configure-docker
